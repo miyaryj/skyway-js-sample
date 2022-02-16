@@ -1,4 +1,4 @@
-const Peer = window.Peer;
+const Peer = require('skyway-js');
 
 (async function main() {
   const localVideo = document.getElementById('js-local-stream');

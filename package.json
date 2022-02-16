@@ -16,5 +16,7 @@
     "webpack-dev-server": "^4.7.4",
     "copy-webpack-plugin": "^10.2.4"
   },
-  "dependencies": {}
+  "dependencies": {
+    "skyway-js": "^4.4.3"
+  }
 }
