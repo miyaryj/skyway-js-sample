@@ -9,6 +9,21 @@ const Peer = require('skyway-js');
   const remoteId = document.getElementById('js-remote-id');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
+  const toggleData = document.getElementById('toggle-data');
+  const lastDataTime = new Date().getTime();
+
+  const onMouseMove = (dataConnection) => {
+    return (e) => {
+      if (!toggleData.checked) return;
+      if (new Date().getTime() - lastDataTime < 200) return;
+   
+      //座標を取得する
+      var mX = e.pageX;  //X座標
+      var mY = e.pageY;  //Y座標
+  
+      dataConnection.send({ mX, mY });
+    };
+  }
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -55,7 +70,27 @@ const Peer = require('skyway-js');
       remoteVideo.srcObject = null;
     });
 
-    closeTrigger.addEventListener('click', () => mediaConnection.close(true));
+    const dataConnection = peer.connect(remoteId.value);
+
+    dataConnection.once('open', async () => {
+      document.body.addEventListener("mousemove", onMouseMove(dataConnection));
+    });
+
+    dataConnection.on('data', data => {
+      console.log(`Remote: ${JSON.stringify(data)}`);
+    });
+
+    dataConnection.once('close', () => {
+      document.body.removeEventListener("mousemove", onMouseMove(dataConnection));
+    });
+
+    // Register closing handler
+    closeTrigger.addEventListener('click', () => {
+      mediaConnection.close(true)
+      dataConnection.close(true)
+    }, {
+      once: true,
+    });
   });
 
   peer.once('open', id => (localId.textContent = id));
@@ -77,6 +112,26 @@ const Peer = require('skyway-js');
     });
 
     closeTrigger.addEventListener('click', () => mediaConnection.close(true));
+  });
+
+  // Register connected peer handler
+  peer.on('connection', dataConnection => {
+    dataConnection.once('open', async () => {
+      document.body.addEventListener("mousemove", onMouseMove(dataConnection));
+    });
+
+    dataConnection.on('data', data => {
+      console.log(`Remote: ${JSON.stringify(data)}`);
+    });
+
+    dataConnection.once('close', () => {
+      document.body.removeEventListener("mousemove", onMouseMove(dataConnection));
+    });
+
+    // Register closing handler
+    closeTrigger.addEventListener('click', () => dataConnection.close(true), {
+      once: true,
+    });
   });
 
   peer.on('error', console.error);
