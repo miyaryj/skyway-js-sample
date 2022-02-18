@@ -13,6 +13,9 @@
         Enter remote peer ID to call.
       </p>
       <div class="p2p-media">
+        <div class="remote-screen-stream">
+          <video id="js-remote-screen-stream" style="display: none;"></video>
+        </div>
         <div class="remote-stream">
           <video id="js-remote-stream"></video>
         </div>
@@ -21,6 +24,7 @@
           <p>Your ID: <span id="js-local-id"></span></p>
           <input type="text" placeholder="Remote Peer ID" id="js-remote-id">
           <button id="js-call-trigger">Call</button>
+          <button id="js-screen-trigger">Screen</button>
           <button id="js-close-trigger">Close</button>
           <label for="toggle-data">
             <input type="checkbox" id="toggle-data"/>

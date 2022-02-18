@@ -4,8 +4,10 @@ const Peer = require('skyway-js');
   const localVideo = document.getElementById('js-local-stream');
   const localId = document.getElementById('js-local-id');
   const callTrigger = document.getElementById('js-call-trigger');
+  const screenTrigger = document.getElementById('js-screen-trigger');
   const closeTrigger = document.getElementById('js-close-trigger');
   const remoteVideo = document.getElementById('js-remote-stream');
+  const remoteScreen = document.getElementById('js-remote-screen-stream');
   const remoteId = document.getElementById('js-remote-id');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
@@ -16,14 +18,30 @@ const Peer = require('skyway-js');
     return (e) => {
       if (!toggleData.checked) return;
       if (new Date().getTime() - lastDataTime < 200) return;
-   
+
       //座標を取得する
       var mX = e.pageX;  //X座標
       var mY = e.pageY;  //Y座標
-  
+
       dataConnection.send({ mX, mY });
     };
   }
+
+  const onShareScreen = (remoteId) => {
+    return async (e) => {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const screenMediaConnection = peer.call(remoteId, screenStream, { metadata: { screen: true } });
+
+      screenStream.getTracks()[0].addEventListener('ended', () => {
+        screenMediaConnection.close(true);
+      });
+
+      closeTrigger.addEventListener('click', () => {
+        screenMediaConnection.close(true);
+        screenStream.getTracks()[0].stop();
+      });
+    };
+  };
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -70,6 +88,8 @@ const Peer = require('skyway-js');
       remoteVideo.srcObject = null;
     });
 
+    closeTrigger.addEventListener('click', () => mediaConnection.close(true));
+
     const dataConnection = peer.connect(remoteId.value);
 
     dataConnection.once('open', async () => {
@@ -84,19 +104,36 @@ const Peer = require('skyway-js');
       document.body.removeEventListener("mousemove", onMouseMove(dataConnection));
     });
 
-    // Register closing handler
-    closeTrigger.addEventListener('click', () => {
-      mediaConnection.close(true)
-      dataConnection.close(true)
-    }, {
-      once: true,
-    });
+    closeTrigger.addEventListener('click', () => dataConnection.close(true));
+
+    screenTrigger.addEventListener('click', onShareScreen(remoteId.value));
   });
 
   peer.once('open', id => (localId.textContent = id));
 
   // Register callee handler
   peer.on('call', mediaConnection => {
+    if (mediaConnection.metadata && mediaConnection.metadata.screen) {
+      remoteScreen.style.display = "block"
+      mediaConnection.answer(new MediaStream());
+
+      mediaConnection.on('stream', async stream => {
+        // Render remote stream for callee
+        remoteScreen.srcObject = stream;
+        remoteScreen.playsInline = true;
+        await remoteScreen.play().catch(console.error);
+      });
+
+      mediaConnection.once('close', () => {
+        remoteScreen.srcObject.getTracks().forEach(track => track.stop());
+        remoteScreen.srcObject = null;
+        remoteScreen.style.display = "none"
+      });
+
+      closeTrigger.addEventListener('click', () => mediaConnection.close(true));
+      return;
+    }
+
     mediaConnection.answer(localStream);
 
     mediaConnection.on('stream', async stream => {
@@ -112,6 +149,8 @@ const Peer = require('skyway-js');
     });
 
     closeTrigger.addEventListener('click', () => mediaConnection.close(true));
+
+    screenTrigger.addEventListener('click', onShareScreen(mediaConnection.remoteId));
   });
 
   // Register connected peer handler
