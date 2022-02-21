@@ -8,28 +8,29 @@
   </head>
   <body>
     <div class="container">
-      <h1 class="heading">P2P Media example</h1>
-      <p class="note">
-        Enter remote peer ID to call.
-      </p>
       <div class="p2p-media">
-        <div class="remote-screen-stream">
-          <video id="js-remote-screen-stream" style="display: none;"></video>
+        <div class="remote-screen-stream" style="display: none;">
+          <video id="js-remote-screen-stream"></video>
         </div>
-        <div class="remote-stream">
-          <video id="js-remote-stream"></video>
-        </div>
-        <div class="local-stream">
-          <video id="js-local-stream"></video>
-          <p>Your ID: <span id="js-local-id"></span></p>
-          <input type="text" placeholder="Remote Peer ID" id="js-remote-id">
-          <button id="js-call-trigger">Call</button>
-          <button id="js-screen-trigger">Screen</button>
-          <button id="js-close-trigger">Close</button>
-          <label for="toggle-data">
-            <input type="checkbox" id="toggle-data"/>
-            Data
-          </label>
+        <div class="video-media">
+          <div class="remote-stream">
+            <video id="js-remote-stream"></video>
+          </div>
+          <div class="local-stream">
+            <video id="js-local-stream"></video>
+            <p>Your ID: <span id="js-local-id"></span></p>
+            <input type="text" placeholder="Remote Peer ID" id="js-remote-id">
+            <button id="js-call-trigger">Call</button>
+            <button id="js-close-trigger">Close</button>
+          </div>
+          <div class="local-stream">
+            <video id="js-local-screen-stream" style="display: none;"></video>
+            <button id="js-screen-trigger">Screen</button>
+            <label for="toggle-data">
+              <input type="checkbox" id="toggle-data"/>
+              Data
+            </label>
+          </div>
         </div>
       </div>
       <p class="meta" id="js-meta"></p>

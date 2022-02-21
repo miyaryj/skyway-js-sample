@@ -2,12 +2,14 @@ const Peer = require('skyway-js');
 
 (async function main() {
   const localVideo = document.getElementById('js-local-stream');
+  const localScreen = document.getElementById('js-local-screen-stream');
   const localId = document.getElementById('js-local-id');
   const callTrigger = document.getElementById('js-call-trigger');
   const screenTrigger = document.getElementById('js-screen-trigger');
   const closeTrigger = document.getElementById('js-close-trigger');
   const remoteVideo = document.getElementById('js-remote-stream');
   const remoteScreen = document.getElementById('js-remote-screen-stream');
+  const remoteScreenContainer = document.querySelector('.remote-screen-stream');
   const remoteId = document.getElementById('js-remote-id');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
@@ -30,15 +32,23 @@ const Peer = require('skyway-js');
   const onShareScreen = (remoteId) => {
     return async (e) => {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      localScreen.style.display = "block"
+      localScreen.srcObject = screenStream;
+      localScreen.playsInline = true;
+      await localScreen.play().catch(console.error);
+
       const screenMediaConnection = peer.call(remoteId, screenStream, { metadata: { screen: true } });
 
-      screenStream.getTracks()[0].addEventListener('ended', () => {
+      screenStream.getTracks().forEach(track => track.addEventListener('ended', () => {
         screenMediaConnection.close(true);
-      });
+        localScreen.style.display = "none"
+      }));
 
       closeTrigger.addEventListener('click', () => {
         screenMediaConnection.close(true);
-        screenStream.getTracks()[0].stop();
+        localScreen.srcObject.getTracks().forEach(track => track.stop());
+        localScreen.srcObject = null;
+        localScreen.style.display = "none"
       });
     };
   };
@@ -86,6 +96,9 @@ const Peer = require('skyway-js');
     mediaConnection.once('close', () => {
       remoteVideo.srcObject.getTracks().forEach(track => track.stop());
       remoteVideo.srcObject = null;
+      localScreen.srcObject.getTracks().forEach(track => track.stop());
+      localScreen.srcObject = null;
+      localScreen.style.display = "none"
     });
 
     closeTrigger.addEventListener('click', () => mediaConnection.close(true));
@@ -114,7 +127,7 @@ const Peer = require('skyway-js');
   // Register callee handler
   peer.on('call', mediaConnection => {
     if (mediaConnection.metadata && mediaConnection.metadata.screen) {
-      remoteScreen.style.display = "block"
+      remoteScreenContainer.style.display = "block"
       mediaConnection.answer(new MediaStream());
 
       mediaConnection.on('stream', async stream => {
@@ -127,7 +140,7 @@ const Peer = require('skyway-js');
       mediaConnection.once('close', () => {
         remoteScreen.srcObject.getTracks().forEach(track => track.stop());
         remoteScreen.srcObject = null;
-        remoteScreen.style.display = "none"
+        remoteScreenContainer.style.display = "none"
       });
 
       closeTrigger.addEventListener('click', () => mediaConnection.close(true));
@@ -146,6 +159,9 @@ const Peer = require('skyway-js');
     mediaConnection.once('close', () => {
       remoteVideo.srcObject.getTracks().forEach(track => track.stop());
       remoteVideo.srcObject = null;
+      localScreen.srcObject.getTracks().forEach(track => track.stop());
+      localScreen.srcObject = null;
+      localScreen.style.display = "none"
     });
 
     closeTrigger.addEventListener('click', () => mediaConnection.close(true));
