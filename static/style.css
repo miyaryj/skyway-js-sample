@@ -63,6 +63,25 @@ video {
   margin-block-end: .5em;
 }
 
+.p2p-media .local-screen-stream {
+  position: relative;
+  margin-block-start: .5em;
+  width: 100%;
+}
+
+.p2p-media #remote-cursor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: skyblue;/*背景色*/
+  pointer-events: none
+}
+
 /* p2p-data styles */
 .p2p-data {
   display: grid;
